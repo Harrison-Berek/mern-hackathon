@@ -19,7 +19,7 @@ export default function App() {
               <NewOrderPage user={user} setUser={setUser} />
             </Route>
             <Route path="/orders">
-              <OrderHistoryPage />
+              <OrderHistoryPage user={user} setUser={setUser} />
             </Route>
             <Redirect to="/orders" />
           </Switch>

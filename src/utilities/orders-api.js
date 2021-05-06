@@ -7,7 +7,7 @@ export function getCart() {
   return sendRequest(`${BASE_URL}/cart`);
 }
 
-// Add an item to a cart
+// Retrieve an unpaid order for the logged in user
 export function addItemToCart(itemId) {
   // Just send itemId for best security (no pricing)
   return sendRequest(`${BASE_URL}/cart/items/${itemId}`, 'POST');

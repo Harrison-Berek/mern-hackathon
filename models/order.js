@@ -1,52 +1,55 @@
 const mongoose = require('mongoose');
-const itemSchema = require('./itemSchema');
 const Schema = mongoose.Schema;
+const itemSchema = require('./itemSchema');
 
 const lineItemSchema = new Schema({
+  // Set qty to 1 when new item pushed into lineItems
   qty: { type: Number, default: 1 },
   item: itemSchema
 }, {
   timestamps: true,
+  // // Include the extPrice virtual property when doc is
+  // // "sent over the wire" (serialized into JSON)
   toJSON: { virtuals: true }
 });
 
-lineItemSchema.virtual('extPrice').get(function() {
-  // 'this' is bound to the lineItem subdoc
+// Be sure NOT to use an arrow function for the callback
+lineItemSchema.virtual('extPrice').get(function () {
   return this.qty * this.item.price;
 });
 
 const orderSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User'},
+  // An order belongs to a user
+  user: { type: Schema.Types.ObjectId, ref: 'User' },
   lineItems: [lineItemSchema],
-  isPaid: { type: Boolean, default: false }
+  isPaid: { type: Boolean, default: false },
 }, {
   timestamps: true,
   toJSON: { virtuals: true }
 });
 
-orderSchema.virtual('orderTotal').get(function() {
-  // 'this' is bound to the order doc
+orderSchema.virtual('orderTotal').get(function () {
   return this.lineItems.reduce((total, item) => total + item.extPrice, 0);
 });
 
-orderSchema.virtual('totalQty').get(function() {
-  // 'this' is bound to the order doc
+orderSchema.virtual('totalQty').get(function () {
   return this.lineItems.reduce((total, item) => total + item.qty, 0);
 });
 
-orderSchema.virtual('orderId').get(function() {
-  // 'this' is bound to the order doc
+orderSchema.virtual('orderId').get(function () {
   return this.id.slice(-6).toUpperCase();
 });
 
-orderSchema.statics.getCart = function(userId) {
-  // 'this' is bound to the model
+// statics are callable on the model, not an instance (document)
+orderSchema.statics.getCart = async function (userId) {
+  // 'this' is bound to the model (don't use an arrow function)
+  // return the promise that resolves to a cart (unpaid order)
   return this.findOneAndUpdate(
     // query
     { user: userId, isPaid: false },
-    // update - in the case that we are inserting
+    // update - in the case the order (cart) is upserted
     { user: userId },
-    // upsert option creates the doc if it doesn't exist
+    // upsert option creates the doc if it doesn't exist!
     { upsert: true, new: true }
   );
 };
@@ -69,14 +72,20 @@ orderSchema.methods.addItemToCart = async function (itemId) {
   return cart.save();
 };
 
-orderSchema.methods.setItemQty = function(itemId, newQty) {
+// Instance method to set an item's qty in the cart (will add item if does not exist)
+orderSchema.methods.setItemQty = async function (itemId, newQty) {
+  // this keyword is bound to the cart (order doc)
   const cart = this;
+  // Find the line item in the cart for the menu item
   const lineItem = cart.lineItems.find(lineItem => lineItem.item._id.equals(itemId));
   if (lineItem && newQty <= 0) {
+    // Calling remove, removes itself from the cart.lineItems array
     lineItem.remove();
   } else if (lineItem) {
+    // Set the new qty - positive value is assured thanks to prev if
     lineItem.qty = newQty;
   }
+  // return the save() method's promise
   return cart.save();
 };
 

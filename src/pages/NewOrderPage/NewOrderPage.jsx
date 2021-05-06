@@ -14,6 +14,8 @@ export default function NewOrderPage({ user, setUser }) {
   const [activeCat, setActiveCat] = useState('');
   const [cart, setCart] = useState(null);
   const categoriesRef = useRef([]);
+
+  // Use history object to change routes programmatically
   const history = useHistory();
 
   useEffect(function() {
@@ -36,20 +38,19 @@ export default function NewOrderPage({ user, setUser }) {
     getCart();
   }, []);
 
-  /*--- Event Handlers ---*/
+  /*--- Event Handlers --- */
   async function handleAddToOrder(itemId) {
-    const updatedCart = await ordersAPI.addItemToCart(itemId);
-    setCart(updatedCart);
+    const cart = await ordersAPI.addItemToCart(itemId);
+    setCart(cart);
   }
 
   async function handleChangeQty(itemId, newQty) {
-    const updatedCart = await ordersAPI.setItemQtyInCart(itemId, newQty);
-    setCart(updatedCart);
+    const cart = await ordersAPI.setItemQtyInCart(itemId, newQty);
+    setCart(cart);
   }
 
   async function handleCheckout() {
     await ordersAPI.checkout();
-    // Programatically change client-side routes
     history.push('/orders');
   }
 
