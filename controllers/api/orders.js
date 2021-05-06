@@ -2,11 +2,17 @@ const Order = require('../../models/order');
 // const Item = require('../../models/item');
 
 module.exports = {
+  index,
   cart,
   addToCart,
   setItemQtyInCart,
   checkout,
 };
+
+async function index(req, res) {
+  const orders = await Order.find({});
+  res.json(orders);
+}
 
 async function cart(req, res) {
   // A cart is the unpaid order for a user

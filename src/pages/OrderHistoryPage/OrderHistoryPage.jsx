@@ -12,11 +12,11 @@ export default function OrderHistoryPage({ user, setUser }) {
   useEffect(function() {
     async function getOrders() {
       const orders = await ordersAPI.getAll();
+      console.log(orders);
       const paidOrders = orders.filter(order => order.isPaid);
       setCompletedOrders(paidOrders);
     }
     getOrders(); 
-  
   }, []);
   return (
     <main className="OrderHistoryPage">
@@ -25,7 +25,7 @@ export default function OrderHistoryPage({ user, setUser }) {
         <Link to="/orders/new" className="button btn-sm">NEW ORDER</Link>
         <UserLogOut user={user} setUser={setUser} />
       </aside>
-
+      {/* <OrderList completedOrders={completedOrders} /> */}
 
 
     </main>
